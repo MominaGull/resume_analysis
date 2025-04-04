@@ -1,0 +1,13 @@
+# Exclude the virtual environment
+.venv
+
+# Exclude version control files and directories
+.git
+.gitignore
+
+# Exclude local environment files
+.env
+
+# Exclude any other development-specific files or folders
+*.pyc
+__pycache__/

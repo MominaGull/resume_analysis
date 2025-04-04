@@ -13,7 +13,7 @@ from keywords import extract_keywords
 load_dotenv(override=True)
 # Load environment variables from .env file
 # Set the OpenAI API key
-openai_api_key = os.getenv("OPENAI_API_KEY")
+default_api_key = os.getenv("OPENAI_API_KEY")
 client = OpenAI()
 
 # Title and description
@@ -25,6 +25,17 @@ uploaded_file = st.file_uploader("Upload your resume (PDF)", type="pdf")
 
 # Job description input
 job_description = st.text_area("Paste the job description here:")
+
+# Sidebar for API key and options
+st.sidebar.title("Settings")
+
+# API key input in sidebar
+user_api_key = st.sidebar.text_input("Enter your OpenAI API Key:",
+                                     type="password",
+                                     help="Your API key will not be stored and is only used for this session")
+
+# Use user provided API key if available, otherwise fall back to environment variable
+api_key = user_api_key if user_api_key else default_api_key
 
 # Sidebar options
 option = st.sidebar.selectbox(
@@ -56,15 +67,26 @@ if st.button("Upload"):
         st.error("Please upload a resume.")
     elif not job_description:
         st.error("Please enter a job description.")
+    elif not api_key:
+        st.error("Please enter your OpenAI API key in the sidebar.")
     else:
-        # Call OpenAI based on the selected option
-        if option == "Analyze Resume":
-            response = analyze_resume(client, resume_text, job_description)
-        elif option == "Improvements":
-            response = suggest_improvements(
-                client, resume_text, job_description)
-        elif option == "Keywords":
-            response = extract_keywords(client, resume_text, job_description)
+        try:
+            # Create OpenAI client with the API key
+            client = OpenAI(api_key=api_key)
+            # Call OpenAI based on the selected option
+            if option == "Analyze Resume":
+                response = analyze_resume(client, resume_text, job_description)
+            elif option == "Improvements":
+                response = suggest_improvements(
+                    client, resume_text, job_description)
+            elif option == "Keywords":
+                response = extract_keywords(
+                    client, resume_text, job_description)
 
-        st.subheader("Analysis Results:")
-        st.write(response)
+            st.subheader("Analysis Results:")
+            st.write(response)
+
+        except Exception as e:
+            st.error(f"Error: {str(e)}")
+            if "API key" in str(e).lower():
+                st.error("Please check if your OpenAI API key is valid.")

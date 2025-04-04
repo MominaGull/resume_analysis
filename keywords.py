@@ -30,5 +30,4 @@ def extract_keywords(client, resume, job_desc):
             {"role": "user", "content": prompt}
         ]
     )
-    print(response)
     return response.choices[0].message.content
